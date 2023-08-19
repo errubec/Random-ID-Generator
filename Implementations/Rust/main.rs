@@ -1,22 +1,16 @@
-extern crate rand;
 use radix_fmt::radix_36;
 use std::time::{SystemTime, UNIX_EPOCH};
-
-use rand::Rng;
 
 fn main() {
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_secs();
-    let random_digit = rand::thread_rng().gen_range(1..10);
+        .expect("Got system time before Unix Epoch")
+        .as_millis(); // u128
 
-    let seed_string = format!("{timestamp}{random_digit}")
-        .chars().rev().collect::<String>();
-    let seed_int = seed_string.parse::<usize>()
-        .expect(&format!("Could not parse into usize: {seed_string}"));
+    let seed: String = (timestamp / 32 - 1).to_string() // does not end in 0
+        .chars().rev().collect(); // does not start with 0
+    let seed: u64 = seed.parse()
+        .expect(&format!("Could not parse '{}' into u64", seed));
 
-    let generated_id = format!("{:#}", radix_36(seed_int));
-
-    println!("{}", generated_id);
+    println!("{:#}", radix_36(seed)); // Generated ID
 }
